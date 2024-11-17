@@ -21,29 +21,15 @@
         pkgs = import nixpkgs { inherit system; };
         nur = nurpkgs.packages.${system};
         
-        lbuffer = pkgs.lua54Packages.buildLuaPackage {
-          pname = "lbuffer";
-          version = "0.0.0";
-        
-          propagateBuildInputs = [ nur.plutolang ];
-
-          buildPhase = ''
-            cc -shared -fPIC -o buffer.so *.c -L${nur.plutolang.dev}/lib -I${nur.plutolang.dev}/include -lplutostatic
-          '';
-
-          installPhase = ''
-            mkdir -p $out/lib/lua/5.4
-            install -Dm755 -t $out/lib/lua/5.4 buffer.so
-          '';
-        };
         lua-miniz = pkgs.lua54Packages.buildLuaPackage {
           pname = "lua-miniz";
           version = "0.0.0";
+          src = ./vendor/lua-miniz;
           
           propagateBuildInputs = [ nur.plutolang ];
 
           buildPhase = ''
-            cc -shared -fPIC -o miniz.so lminiz.c -L${nur.plutolang.dev}/lib -I${nur.plutolang.dev}/include -lplutostatic
+            cc -shared -fPIC -o miniz.so lminiz.c -L${nur.plutolang.dev}/lib -I${pkgs.lua54Packages.lua}/include -lplutostatic
           '';
 
           installPhase = ''
@@ -62,7 +48,6 @@
           src = ./.;
 
           buildInputs = [
-            lbuffer
             lua-miniz
           ];
 
@@ -84,13 +69,13 @@
 
         devShells.default = pkgs.mkShell {
           packages = [
-            lbuffer
+            # lbuffer
             lua-miniz
             nur.plutolang
           ];
 
           shellHook = ''
-            export LUA_CPATH=";;${luaCLib "5.4" lbuffer};${luaCLib "5.4" lua-miniz}"
+            export LUA_CPATH=";;${luaCLib "5.4" lua-miniz}"
           '';
         };
       }
